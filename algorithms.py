@@ -1,6 +1,8 @@
 # -*- coding: UTF-8 -*-
 import math
+
 import graphics
+
 
 __author__ = 'Bartosz'
 
@@ -69,6 +71,14 @@ def reverse_comparator(tmp, x1, x2):
     if get_degree_reverse(tmp, x1) == get_degree_reverse(tmp, x2):
         return x1 if get_distance(tmp, x1) > get_distance(tmp, x2) else x2
     return x1 if get_degree_reverse(tmp, x1) < get_degree_reverse(tmp, x2) else x2
+
+
+def get_angle(x, y, z):
+    angle = abs(math.degrees(math.atan2(x.getY() - z.getY(), x.getX() - z.getX())
+                             - math.atan2(y.getY() - z.getY(), y.getX() - z.getX())))
+    if angle > 180:
+        angle -= 180
+    return angle
 
 
 class Graham(object):
@@ -153,8 +163,28 @@ class Applet(object):
         self._hull = jarvis.get_result()
 
     def solve(self):
-        for i in xrange(0, len(self._hull)-1):
-            line = graphics.Line(self._hull[i], self._hull[i + 1])
+        if len(self._hull) < 4:
+            return self._hull
+        return self.inner_solve(self._hull[0], self._hull[1])
+
+    def inner_solve(self, p1, p2):
+        new_list = list(self._hull)
+        new_list.remove(p1)
+        new_list.remove(p2)
+        f = lambda x, y: x if get_angle(p1, p2, x) < get_angle(p1, p2, y) else y
+        best = reduce(f, new_list)
+        if get_angle(p1, p2, best) >= 90:
+            return [p1, p2]
+        alpha = get_angle(p1, best, p2)
+        beta = get_angle(p2, best, p1)
+        if alpha > 90:
+            return self.inner_solve(p1, best)
+        if beta > 90:
+            return self.inner_solve(p2, best)
+        return [p1, p2, best]
+
+
+
 
 
 
