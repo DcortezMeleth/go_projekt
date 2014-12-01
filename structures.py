@@ -1,7 +1,8 @@
 # -*- coding: UTF-8 -*-
-__author__ = 'Bartosz'
 import numpy.linalg as la
 import graphics
+
+__author__ = 'Bartosz'
 
 
 # klasa reprezentująca punkt w przestrzeni
