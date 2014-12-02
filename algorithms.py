@@ -150,12 +150,8 @@ class MinimumArea(object):
         graham = Graham(points)
         graham.solve()
         self._hull = graham.get_result()
-        self._result = []
-
-    '''
-    j - numer wierzcholka
-    s -
-    '''
+        self._min_area = None
+        self._min_perimeter = None
 
     def most_far(self, j, sin, cos, mx, my):
         xn, yn = self._hull[j].x, self._hull[j].y
@@ -171,9 +167,10 @@ class MinimumArea(object):
             else:
                 return x, y, j
 
-    def solve(self):
+    def solve(self, mode=0):
         i_l = i_r = i_p = 1  # indeksy: lewy, prawy, przeciwny
-        min_rect = (1e33, 0, 0, 0, 0, 0)
+        min_area = (1e33, 0, 0, 0, 0, 0)
+        min_perimeter = (1e33, 0, 0, 0, 0, 0)
         for i in xrange(len(self._hull) - 1):
             dx = self._hull[i + 1].x - self._hull[i].x
             dy = self._hull[i + 1].y - self._hull[i].y
@@ -187,37 +184,18 @@ class MinimumArea(object):
             x_r, y_r, i_r = self.most_far(i_r, sin, cos, 1, 0)
             x_l, y_l, i_l = self.most_far(i_l, sin, cos, -1, 0)
             area = (y_p - y_c) * (x_r - x_l)
+            perimeter = 2 * ((y_p - y_c) + (x_r - x_l))
 
-            if area < min_rect[0]:
-                min_rect = (area, x_r-x_l, y_p - y_c, i, i_l, i_p, i_r)
+            if area < min_area[0]:
+                min_area = (area, x_r - x_l, y_p - y_c, i, i_l, i_p, i_r)
+            if perimeter < min_perimeter[0]:
+                min_perimeter = (perimeter, x_r - x_l, y_p - y_c, i, i_l, i_p, i_r)
 
-        print "Minimum rectangle: ", min_rect
+        self._min_area = min_area
+        self._min_perimeter = min_perimeter
 
+    def get_min_area(self):
+        return self._min_area
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def get_min_perimeter(self):
+        return self._min_perimeter

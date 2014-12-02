@@ -1,8 +1,10 @@
 # -*- coding: UTF-8 -*-
 import pickle
 import traceback
+
 import sys
 
+from algorithms import Applet, MinimumArea
 import graphics
 from structures import Point
 from generator import Generator
@@ -13,12 +15,10 @@ __author__ = 'Bartosz'
 
 class Solver(object):
     POINTS_FILE_NAME = "points.dat"
-    RESULT_FILE_NAME = "result.dat"
 
     help_str = "Program usage: sage:\n  " \
                "save_points - save to file\n  " \
                "load_points - load from file\n  " \
-               "save_result - save to file\n  " \
                "set_n <n> <square_n=25> <diagonal_n=20> - set number of points to generate\n  " \
                "set_range <min> <max> - set params for range generation\n  " \
                "set_circle <center.x> <center.y> <r> - set params for circle generation\n  " \
@@ -28,16 +28,13 @@ class Solver(object):
                "generate <option> - generate points (0 - range, 1 - circle, 2 - quadrilateral, 3 - square)\n  " \
                "solve <algorithm> - solve problem using chosen algorithm(0 - Graham, 1 - Jarvis)\n  " \
                "draw_points - draw generated points set\n  " \
-               "draw_result - draws result sequentially, drawing stretches one by one\n  " \
                "print_points - print generated points\n  " \
-               "print_result - prints points in result list\n  " \
                "print_help - print program usage"
 
     def __init__(self):
         self._generator = Generator()
         self._algorithms = {}
         self._points = []
-        self._result = []
 
     def run(self):
         print self.help_str
@@ -61,10 +58,10 @@ class Solver(object):
             print 'Error: occurred', e
 
     def draw_result(self):
-        win = graphics.GraphWin("go_otoczka", 800, 600)
+        win = graphics.GraphWin("go_projekt", 800, 600)
         for point in self._points:
             point.draw(win)
-        for i in xrange(0, len(self._result)-1):
+        for i in xrange(0, len(self._result) - 1):
             line = graphics.Line(self._result[i], self._result[i + 1])
             line.draw(win)
             win.getMouse()
@@ -74,7 +71,7 @@ class Solver(object):
         win.close()
 
     def draw_points(self):
-        win = graphics.GraphWin("go_otoczka", 800, 600)
+        win = graphics.GraphWin("go_projekt", 800, 600)
         for point in self._points:
             point.draw(win)
         win.getMouse()
@@ -82,9 +79,6 @@ class Solver(object):
 
     def print_help(self):
         print self.help_str
-
-    def print_result(self):
-        print self._result
 
     def print_points(self):
         for point in self._points:
@@ -95,7 +89,6 @@ class Solver(object):
             print 'You have to generate points first!'
         algorithm = self._algorithms[int(algorithm_no)]
         algorithm.solve()
-        self._result = algorithm.get_result()
 
     def generate(self, option):
         options = {0: self._generator.generate_range,
@@ -106,8 +99,9 @@ class Solver(object):
             options[int(option)]()
             self._points = self._generator.get_points()
 
-            #self._algorithms[0] = Graham(self._points)
-            #self._algorithms[1] = Jarvis(self._points)
+            self._algorithms[0] = Applet(self._points)
+            self._algorithms[1] = MinimumArea(self._points)
+            self._algorithms[2] = self._algorithms[1]
         except KeyError:
             print 'Option should be in range 0-3'
 
@@ -129,9 +123,6 @@ class Solver(object):
 
     def save_points(self):
         pickle.dump(self._points, open(self.POINTS_FILE_NAME, 'wb'))
-
-    def save_result(self):
-        pickle.dump(self._result, open(self.RESULT_FILE_NAME, 'wb'))
 
     def load_points(self):
         self._generator.set_points(pickle.load(open(self.POINTS_FILE_NAME, 'rb')))
