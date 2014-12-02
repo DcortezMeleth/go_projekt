@@ -1,8 +1,6 @@
 # -*- coding: UTF-8 -*-
 import math
 
-import graphics
-
 
 __author__ = 'Bartosz'
 
@@ -116,56 +114,18 @@ class Graham(object):
         return self._result
 
 
-class Jarvis(object):
-    def __init__(self, points):
-        self._points = points
-        self._p0 = find_lowest_y(points)
-        self._p1 = find_highest_y(points)
-        self._result = []
-
-    def solve(self):
-        if len(self._points) < 3:
-            return None
-
-        # prawa strona otoczki
-        tmp = self._p0
-        self._result.append(self._p0)
-        while tmp != self._p1:
-            f = lambda x, y: comparator(tmp, x, y)
-            best = reduce(f, self._points)
-            # pierwszym elementem zawsze będzie nasz obecny punkt, bo mamy wtedy kąt 0 stopni
-            self._result.append(best)
-            tmp = self._result[-1]
-
-        # lewa strona otoczki
-        tmp = self._p0
-        result = []
-        while tmp != self._p1:
-            f = lambda x, y: reverse_comparator(tmp, x, y)
-            best = reduce(f, self._points)
-            result.append(best)
-            tmp = result[-1]
-
-        # usuwamy p1, bo zostało dodane 2 razy
-        result = result[:-1]
-
-        self._result.extend(result[::-1])
-
-    def get_result(self):
-        return self._result
-
-
 class Applet(object):
     def __init__(self, points):
         self._points = points
-        jarvis = Jarvis(points)
-        jarvis.solve()
-        self._hull = jarvis.get_result()
+        graham = Graham(points)
+        graham.solve()
+        self._hull = graham.get_result()
+        self._result = []
 
     def solve(self):
         if len(self._hull) < 4:
             return self._hull
-        return self.inner_solve(self._hull[0], self._hull[1])
+        self._result = self.inner_solve(self._hull[0], self._hull[1])
 
     def inner_solve(self, p1, p2):
         new_list = list(self._hull)
@@ -184,8 +144,54 @@ class Applet(object):
         return [p1, p2, best]
 
 
+class MinimumArea(object):
+    def __init__(self, points):
+        self._points = points
+        graham = Graham(points)
+        graham.solve()
+        self._hull = graham.get_result()
+        self._result = []
 
+    '''
+    j - numer wierzcholka
+    s -
+    '''
 
+    def most_far(self, j, sin, cos, mx, my):
+        xn, yn = self._hull[j].x, self._hull[j].y
+        rx, ry = xn * cos - yn * sin, xn * sin - yn * cos
+        best = mx * rx + my * ry
+        while True:
+            x, y = rx, ry
+            xn, yn = self._hull[(j + 1) % len(self._hull)].x, self._hull[(j + 1) % len(self._hull)].y
+            rx, ry = xn * cos - yn * sin, xn * sin - yn * cos
+            if mx * rx + my * ry >= best:
+                j = (j + 1) % len(self._hull)
+                best = mx * rx + my * ry
+            else:
+                return x, y, j
+
+    def solve(self):
+        i_l = i_r = i_p = 1  # indeksy: lewy, prawy, przeciwny
+        min_rect = (1e33, 0, 0, 0, 0, 0)
+        for i in xrange(len(self._hull) - 1):
+            dx = self._hull[i + 1].x - self._hull[i].x
+            dy = self._hull[i + 1].y - self._hull[i].y
+            theta = math.pi - math.atan2(dy, dx)
+            sin, cos = math.sin(theta), math.cos(theta)
+            y_c = self._hull[i].x * sin + self._hull[i].y * cos
+
+            x_p, y_p, i_p = self.most_far(i_p, sin, cos, 0, 1)
+            if i == 0:
+                i_r = i_p
+            x_r, y_r, i_r = self.most_far(i_r, sin, cos, 1, 0)
+            x_l, y_l, i_l = self.most_far(i_l, sin, cos, -1, 0)
+            area = (y_p - y_c) * (x_r - x_l)
+
+            if area < min_rect[0]:
+                min_rect = (area, x_r-x_l, y_p - y_c, i, i_l, i_p, i_r)
+
+        print "Minimum rectangle: ", min_rect
 
 
 
