@@ -1,7 +1,5 @@
 # -*- coding: UTF-8 -*-
-import pickle
 import traceback
-
 import sys
 
 from algorithms import Applet, MinimumArea
@@ -17,8 +15,6 @@ class Solver(object):
     POINTS_FILE_NAME = "points.dat"
 
     help_str = "Program usage: sage:\n  " \
-               "save_points - save to file\n  " \
-               "load_points - load from file\n  " \
                "set_n <n> <square_n=25> <diagonal_n=20> - set number of points to generate\n  " \
                "set_range <min> <max> - set params for range generation\n  " \
                "set_circle <center.x> <center.y> <r> - set params for circle generation\n  " \
@@ -26,9 +22,9 @@ class Solver(object):
                "- set params for quadrilateral generation\n  " \
                "set_square <x1.x> <x1.y> <x3.x> <x3.y> - set params for square generation\n  " \
                "generate <option> - generate points (0 - range, 1 - circle, 2 - quadrilateral, 3 - square)\n  " \
-               "solve <algorithm> - solve problem using chosen algorithm(0 - Graham, 1 - Jarvis)\n  " \
+               "solve <problem> - solve problem (0 - smallest circle, 1 - smallest area rectangle," \
+               " 2 - smallest perimeter rectangle)\n  " \
                "draw_points - draw generated points set\n  " \
-               "print_points - print generated points\n  " \
                "print_help - print program usage"
 
     def __init__(self):
@@ -80,15 +76,14 @@ class Solver(object):
     def print_help(self):
         print self.help_str
 
-    def print_points(self):
-        for point in self._points:
-            print point
-
     def solve(self, algorithm_no):
         if not self._algorithms:
             print 'You have to generate points first!'
         algorithm = self._algorithms[int(algorithm_no)]
-        algorithm.solve()
+        if int(algorithm_no) == 3:
+            algorithm.solve(1)
+        else:
+            algorithm.solve()
 
     def generate(self, option):
         options = {0: self._generator.generate_range,
@@ -103,7 +98,7 @@ class Solver(object):
             self._algorithms[1] = MinimumArea(self._points)
             self._algorithms[2] = self._algorithms[1]
         except KeyError:
-            print 'Option should be in range 0-3'
+            print 'Option should be in range 0-2s'
 
     def set_square(self, x1_x, x1_y, x3_x, x3_y):
         self._generator.set_square(Point(float(x1_x), float(x1_y)), Point(float(x3_x), float(x3_y)))
@@ -120,12 +115,6 @@ class Solver(object):
 
     def set_n(self, n, square_n=25, diagonal_n=20):
         self._generator.set_n(int(n), square_n=int(square_n), diagonal_n=int(diagonal_n))
-
-    def save_points(self):
-        pickle.dump(self._points, open(self.POINTS_FILE_NAME, 'wb'))
-
-    def load_points(self):
-        self._generator.set_points(pickle.load(open(self.POINTS_FILE_NAME, 'rb')))
 
 
 if __name__ == '__main__':

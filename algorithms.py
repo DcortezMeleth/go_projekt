@@ -23,7 +23,7 @@ def get_degree_reverse(base, target):
 
 # metoda licząca dystans pomiędzy punktami
 def get_distance(base, target):
-    return math.sqrt((base.x - target.x) ** 2 + (base.y - target.y) ** 2)
+    return math.sqrt((base.x - target.x)**2 + (base.y - target.y)**2)
 
 
 # wyszukuje w liście punkt o najmniejszym y
@@ -123,9 +123,11 @@ class Applet(object):
         self._result = []
 
     def solve(self):
-        if len(self._hull) < 4:
+        if len(self._hull) < 3:
             return self._hull
         self._result = self.inner_solve(self._hull[0], self._hull[1])
+        for p in self._result:
+            print p
 
     def inner_solve(self, p1, p2):
         new_list = list(self._hull)
@@ -150,20 +152,25 @@ class MinimumArea(object):
         graham = Graham(points)
         graham.solve()
         self._hull = graham.get_result()
+        self._hull = self._hull[::-1]
+        self._hull.append(self._hull[0])
+        for p in self._hull:
+            print p
         self._min_area = None
         self._min_perimeter = None
 
     def most_far(self, j, sin, cos, mx, my):
+        n = len(self._hull)
         xn, yn = self._hull[j].x, self._hull[j].y
-        rx, ry = xn * cos - yn * sin, xn * sin - yn * cos
-        best = mx * rx + my * ry
+        rx, ry = xn*cos - yn*sin, xn*sin + yn*cos
+        best = mx*rx + my*ry
         while True:
             x, y = rx, ry
-            xn, yn = self._hull[(j + 1) % len(self._hull)].x, self._hull[(j + 1) % len(self._hull)].y
-            rx, ry = xn * cos - yn * sin, xn * sin - yn * cos
-            if mx * rx + my * ry >= best:
-                j = (j + 1) % len(self._hull)
-                best = mx * rx + my * ry
+            xn, yn = self._hull[(j + 1) % n].x, self._hull[(j + 1) % n].y
+            rx, ry = xn*cos - yn*sin, xn*sin + yn*cos
+            if mx*rx + my*ry >= best:
+                j = (j + 1) % n
+                best = mx*rx + my*ry
             else:
                 return x, y, j
 
@@ -171,20 +178,22 @@ class MinimumArea(object):
         i_l = i_r = i_p = 1  # indeksy: lewy, prawy, przeciwny
         min_area = (1e33, 0, 0, 0, 0, 0)
         min_perimeter = (1e33, 0, 0, 0, 0, 0)
-        for i in xrange(len(self._hull) - 1):
+        for i in range(len(self._hull) - 1):
             dx = self._hull[i + 1].x - self._hull[i].x
             dy = self._hull[i + 1].y - self._hull[i].y
             theta = math.pi - math.atan2(dy, dx)
             sin, cos = math.sin(theta), math.cos(theta)
-            y_c = self._hull[i].x * sin + self._hull[i].y * cos
+            y_c = self._hull[i].x*sin + self._hull[i].y*cos
 
             x_p, y_p, i_p = self.most_far(i_p, sin, cos, 0, 1)
             if i == 0:
                 i_r = i_p
             x_r, y_r, i_r = self.most_far(i_r, sin, cos, 1, 0)
             x_l, y_l, i_l = self.most_far(i_l, sin, cos, -1, 0)
-            area = (y_p - y_c) * (x_r - x_l)
-            perimeter = 2 * ((y_p - y_c) + (x_r - x_l))
+            area = (y_p - y_c)*(x_r - x_l)
+            perimeter = 2*((y_p - y_c) + (x_r - x_l))
+
+            print i, area, perimeter, (y_p - y_c), (x_r - x_l), y_p, y_c, x_r, x_l
 
             if area < min_area[0]:
                 min_area = (area, x_r - x_l, y_p - y_c, i, i_l, i_p, i_r)
@@ -193,6 +202,8 @@ class MinimumArea(object):
 
         self._min_area = min_area
         self._min_perimeter = min_perimeter
+        print min_area
+        print min_perimeter
 
     def get_min_area(self):
         return self._min_area

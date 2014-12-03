@@ -1,7 +1,9 @@
 # -*- coding: UTF-8 -*-
 
-import graphics
 import numpy.linalg as la
+
+import graphics
+
 
 __author__ = 'Bartosz'
 
@@ -52,6 +54,3 @@ class Line(object):
         # przypadek gdy układ równań liniowo zależnych - prosta prostopadła do ox
         except la.LinAlgError:
             return Line(x1.x, 0, c=0, x1=x1, x2=x2)
-
-
-
