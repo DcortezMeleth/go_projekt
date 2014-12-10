@@ -174,7 +174,7 @@ class MinimumArea(object):
             else:
                 return x, y, j
 
-    def solve(self, mode=0):
+    def solve(self):
         i_l = i_r = i_p = 1  # indeksy: lewy, prawy, przeciwny
         min_area = (1e33, 0, 0, 0, 0, 0)
         min_perimeter = (1e33, 0, 0, 0, 0, 0)

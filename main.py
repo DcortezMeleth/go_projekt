@@ -80,10 +80,7 @@ class Solver(object):
         if not self._algorithms:
             print 'You have to generate points first!'
         algorithm = self._algorithms[int(algorithm_no)]
-        if int(algorithm_no) == 3:
-            algorithm.solve(1)
-        else:
-            algorithm.solve()
+        algorithm.solve()
 
     def generate(self, option):
         options = {0: self._generator.generate_range,
