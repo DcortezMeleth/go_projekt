@@ -1,6 +1,8 @@
 # -*- coding: UTF-8 -*-
 import math
-
+import graphics
+import re
+import structures as struct
 
 __author__ = 'Bartosz'
 
@@ -79,6 +81,30 @@ def get_angle(x, y, z):
     return angle
 
 
+def draw_circle(win, points):
+    if len(points) == 3:
+        x = complex(points[0].x, points[0].y)
+        y = complex(points[1].x, points[1].y)
+        z = complex(points[2].x, points[2].y)
+        w = z - x
+        w /= y - x
+        c = (x - y)*(w - abs(w)**2)/2j/w.imag - x
+        print c
+        print '(x%+.3f)^2+(y%+.3f)^2=%.3f^2' % (c.real, c.imag, abs(c + x))
+        circle = graphics.Circle(graphics.Point(-c.real, -c.imag), abs(c+x))
+    else:
+        dx = (points[0].x - points[1].x)/2
+        dy = (points[0].y - points[1].y)/2
+        center = struct.Point(points[1].x + dx, points[1].y + dy)
+        radius = math.sqrt(dx**2 + dy**2)
+        circle = graphics.Circle(center, radius)
+        print '(x%+.3f)^2+(y%+.3f)^2=%.3f^2' % (-center.x, -center.y, radius)
+
+    circle.draw(win)
+    win.getMouse()
+    circle.undraw()
+
+
 class Graham(object):
     def __init__(self, points):
         self._points = points
@@ -121,21 +147,33 @@ class Applet(object):
         graham.solve()
         self._hull = graham.get_result()
         self._result = []
+        self.i = 0
 
     def solve(self):
         if len(self._hull) < 3:
             return self._hull
         self._result = self.inner_solve(self._hull[0], self._hull[1])
+        print 'Best!'
         for p in self._result:
             print p
+        win = graphics.GraphWin("go_projekt", 800, 600)
+        draw_circle(win, self._result)
+        for p in self._points:
+            p.draw(win)
+        win.getMouse()
+        win.close()
 
     def inner_solve(self, p1, p2):
+        self.i += 1
+        print self.i, p1, p2
         new_list = list(self._hull)
         new_list.remove(p1)
         new_list.remove(p2)
         f = lambda x, y: x if get_angle(p1, p2, x) < get_angle(p1, p2, y) else y
         best = reduce(f, new_list)
+        print 'angle: ', get_angle(p1, p2, best)
         if get_angle(p1, p2, best) >= 90:
+            print 'success: ', p1, p2
             return [p1, p2]
         alpha = get_angle(p1, best, p2)
         beta = get_angle(p2, best, p1)
@@ -143,6 +181,7 @@ class Applet(object):
             return self.inner_solve(p1, best)
         if beta > 90:
             return self.inner_solve(p2, best)
+        print 'success2: ', p1, p2, best
         return [p1, p2, best]
 
 
@@ -154,8 +193,6 @@ class MinimumArea(object):
         self._hull = graham.get_result()
         self._hull = self._hull[::-1]
         self._hull.append(self._hull[0])
-        for p in self._hull:
-            print p
         self._min_area = None
         self._min_perimeter = None
 
@@ -178,7 +215,7 @@ class MinimumArea(object):
         i_l = i_r = i_p = 1  # indeksy: lewy, prawy, przeciwny
         min_area = (1e33, 0, 0, 0, 0, 0)
         min_perimeter = (1e33, 0, 0, 0, 0, 0)
-        for i in range(len(self._hull) - 1):
+        for i in xrange(len(self._hull) - 1):
             dx = self._hull[i + 1].x - self._hull[i].x
             dy = self._hull[i + 1].y - self._hull[i].y
             theta = math.pi - math.atan2(dy, dx)
