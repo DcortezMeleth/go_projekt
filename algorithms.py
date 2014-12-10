@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import math
 import graphics
-import re
+import numpy as np
 import structures as struct
 
 __author__ = 'Bartosz'
@@ -73,12 +73,19 @@ def reverse_comparator(tmp, x1, x2):
     return x1 if get_degree_reverse(tmp, x1) < get_degree_reverse(tmp, x2) else x2
 
 
-def get_angle(x, y, z):
-    angle = abs(math.degrees(math.atan2(x.getY() - z.getY(), x.getX() - z.getX())
-                             - math.atan2(y.getY() - z.getY(), y.getX() - z.getX())))
-    if angle > 180:
-        angle -= 180
-    return angle
+def get_angle(p0, p1, p2):
+    ''' compute angle (in degrees) for p0p1p2 corner
+    Inputs:
+        p0,p1,p2 - points in the form of [x,y]
+    '''
+    p0 = [p0.x, p0.y]
+    p1 = [p1.x, p1.y]
+    p2 = [p2.x, p2.y]
+    v1 = np.array(p0) - np.array(p1)
+    v0 = np.array(p2) - np.array(p1)
+
+    angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
+    return abs(np.degrees(angle))
 
 
 def draw_circle(win, points):
@@ -89,7 +96,6 @@ def draw_circle(win, points):
         w = z - x
         w /= y - x
         c = (x - y)*(w - abs(w)**2)/2j/w.imag - x
-        print c
         print '(x%+.3f)^2+(y%+.3f)^2=%.3f^2' % (c.real, c.imag, abs(c + x))
         circle = graphics.Circle(graphics.Point(-c.real, -c.imag), abs(c+x))
     else:
@@ -99,10 +105,7 @@ def draw_circle(win, points):
         radius = math.sqrt(dx**2 + dy**2)
         circle = graphics.Circle(center, radius)
         print '(x%+.3f)^2+(y%+.3f)^2=%.3f^2' % (-center.x, -center.y, radius)
-
     circle.draw(win)
-    win.getMouse()
-    circle.undraw()
 
 
 class Graham(object):
@@ -147,41 +150,36 @@ class Applet(object):
         graham.solve()
         self._hull = graham.get_result()
         self._result = []
-        self.i = 0
 
     def solve(self):
         if len(self._hull) < 3:
             return self._hull
-        self._result = self.inner_solve(self._hull[0], self._hull[1])
-        print 'Best!'
-        for p in self._result:
-            print p
         win = graphics.GraphWin("go_projekt", 800, 600)
-        draw_circle(win, self._result)
         for p in self._points:
             p.draw(win)
+        self._result = self.inner_solve(self._hull[0], self._hull[1], win)
+        draw_circle(win, self._result)
         win.getMouse()
         win.close()
 
-    def inner_solve(self, p1, p2):
-        self.i += 1
-        print self.i, p1, p2
+    def inner_solve(self, p1, p2, win):
         new_list = list(self._hull)
         new_list.remove(p1)
         new_list.remove(p2)
-        f = lambda x, y: x if get_angle(p1, p2, x) < get_angle(p1, p2, y) else y
+        f = lambda x, y: x if get_angle(p1, x, p2) < get_angle(p1, y, p2) else y
         best = reduce(f, new_list)
-        print 'angle: ', get_angle(p1, p2, best)
-        if get_angle(p1, p2, best) >= 90:
-            print 'success: ', p1, p2
+        triangle = graphics.Polygon(p1, p2, best)
+        triangle.draw(win)
+        win.getMouse()
+        triangle.undraw()
+        if get_angle(p1, best, p2) >= 90:
             return [p1, p2]
-        alpha = get_angle(p1, best, p2)
-        beta = get_angle(p2, best, p1)
+        alpha = get_angle(p1, p2, best)
+        beta = get_angle(p2, p1, best)
         if alpha > 90:
-            return self.inner_solve(p1, best)
+            return self.inner_solve(p1, best, win)
         if beta > 90:
-            return self.inner_solve(p2, best)
-        print 'success2: ', p1, p2, best
+            return self.inner_solve(p2, best, win)
         return [p1, p2, best]
 
 

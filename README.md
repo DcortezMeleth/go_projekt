@@ -3,15 +3,12 @@ go_projekt
 
 Zadanie na projekt z przedmiotu Geometria Obliczeniowa. 
 Program pozwala na zdefiniowanie punków w przestrzeni 2D na jeden z wybranych sposobów, a następnie pozwala wyznaczyć 
-najmniejszyokrg i kwadrat opisane na tym zbiorze.
+najmniejszy okrąg i kwadrat opisane na zdefiniowanym zbiorze zbiorze.
 
 Cała aplikacja została napisana w języku python. Wykorzystuje ona biblioteki numpy oraz graphics.
 Aby uruchomić aplikację należy odpalić plik _main.py_.
 
 ####Program usage:
-- save_points - save to file
-- load_points - load from file
-- save_result - save to file
 - set_n <n> <square_n=25> <diagonal_n=20> - set number of points to generate
 - set_range <min> <max> - set params for range generation
 - set_circle <center.x> <center.y> <r> - set params for circle generation

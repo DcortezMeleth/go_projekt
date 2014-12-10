@@ -79,6 +79,7 @@ class Solver(object):
     def solve(self, algorithm_no):
         if not self._algorithms:
             print 'You have to generate points first!'
+            return
         algorithm = self._algorithms[int(algorithm_no)]
         algorithm.solve()
 
