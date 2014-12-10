@@ -25,7 +25,7 @@ def get_degree_reverse(base, target):
 
 # metoda licząca dystans pomiędzy punktami
 def get_distance(base, target):
-    return math.sqrt((base.x - target.x)**2 + (base.y - target.y)**2)
+    return math.sqrt((base.x - target.x) ** 2 + (base.y - target.y) ** 2)
 
 
 # wyszukuje w liście punkt o najmniejszym y
@@ -74,10 +74,10 @@ def reverse_comparator(tmp, x1, x2):
 
 
 def get_angle(p0, p1, p2):
-    ''' compute angle (in degrees) for p0p1p2 corner
-    Inputs:
-        p0,p1,p2 - points in the form of [x,y]
-    '''
+    # compute angle (in degrees) for p0p1p2 corner
+    # Inputs:
+    #    p0,p1,p2 - points in the form of [x,y]
+
     p0 = [p0.x, p0.y]
     p1 = [p1.x, p1.y]
     p2 = [p2.x, p2.y]
@@ -95,14 +95,14 @@ def draw_circle(win, points):
         z = complex(points[2].x, points[2].y)
         w = z - x
         w /= y - x
-        c = (x - y)*(w - abs(w)**2)/2j/w.imag - x
+        c = (x - y) * (w - abs(w) ** 2) / 2j / w.imag - x
         print '(x%+.3f)^2+(y%+.3f)^2=%.3f^2' % (c.real, c.imag, abs(c + x))
-        circle = graphics.Circle(graphics.Point(-c.real, -c.imag), abs(c+x))
+        circle = graphics.Circle(graphics.Point(-c.real, -c.imag), abs(c + x))
     else:
-        dx = (points[0].x - points[1].x)/2
-        dy = (points[0].y - points[1].y)/2
+        dx = (points[0].x - points[1].x) / 2
+        dy = (points[0].y - points[1].y) / 2
         center = struct.Point(points[1].x + dx, points[1].y + dy)
-        radius = math.sqrt(dx**2 + dy**2)
+        radius = math.sqrt(dx ** 2 + dy ** 2)
         circle = graphics.Circle(center, radius)
         print '(x%+.3f)^2+(y%+.3f)^2=%.3f^2' % (-center.x, -center.y, radius)
     circle.draw(win)
@@ -197,19 +197,23 @@ class MinimumArea(object):
     def most_far(self, j, sin, cos, mx, my):
         n = len(self._hull)
         xn, yn = self._hull[j].x, self._hull[j].y
-        rx, ry = xn*cos - yn*sin, xn*sin + yn*cos
-        best = mx*rx + my*ry
+        rx, ry = xn * cos - yn * sin, xn * sin + yn * cos
+        best = mx * rx + my * ry
         while True:
             x, y = rx, ry
             xn, yn = self._hull[(j + 1) % n].x, self._hull[(j + 1) % n].y
-            rx, ry = xn*cos - yn*sin, xn*sin + yn*cos
-            if mx*rx + my*ry >= best:
+            rx, ry = xn * cos - yn * sin, xn * sin + yn * cos
+            if mx * rx + my * ry >= best:
                 j = (j + 1) % n
-                best = mx*rx + my*ry
+                best = mx * rx + my * ry
             else:
                 return x, y, j
 
     def solve(self):
+        win = graphics.GraphWin("go_projekt", 800, 600)
+        for p in self._points:
+            p.draw(win)
+
         i_l = i_r = i_p = 1  # indeksy: lewy, prawy, przeciwny
         min_area = (1e33, 0, 0, 0, 0, 0)
         min_perimeter = (1e33, 0, 0, 0, 0, 0)
@@ -218,17 +222,23 @@ class MinimumArea(object):
             dy = self._hull[i + 1].y - self._hull[i].y
             theta = math.pi - math.atan2(dy, dx)
             sin, cos = math.sin(theta), math.cos(theta)
-            y_c = self._hull[i].x*sin + self._hull[i].y*cos
+            y_c = self._hull[i].x * sin + self._hull[i].y * cos
 
             x_p, y_p, i_p = self.most_far(i_p, sin, cos, 0, 1)
             if i == 0:
                 i_r = i_p
             x_r, y_r, i_r = self.most_far(i_r, sin, cos, 1, 0)
             x_l, y_l, i_l = self.most_far(i_l, sin, cos, -1, 0)
-            area = (y_p - y_c)*(x_r - x_l)
-            perimeter = 2*((y_p - y_c) + (x_r - x_l))
+            area = (y_p - y_c) * (x_r - x_l)
+            perimeter = 2 * ((y_p - y_c) + (x_r - x_l))
 
-            print i, area, perimeter, (y_p - y_c), (x_r - x_l), y_p, y_c, x_r, x_l
+            points = [struct.Point(x_l, y_c), struct.Point(x_r, y_c), struct.Point(x_r, y_p), struct.Point(x_l, y_p)]
+            for point in points:
+                point.x, point.y = abs(point.x * cos + point.y * sin), abs(point.x * sin - point.y * cos)
+            rectangle = graphics.Polygon(*points)
+            rectangle.draw(win)
+            win.getMouse()
+            rectangle.undraw()
 
             if area < min_area[0]:
                 min_area = (area, x_r - x_l, y_p - y_c, i, i_l, i_p, i_r)
@@ -239,6 +249,7 @@ class MinimumArea(object):
         self._min_perimeter = min_perimeter
         print min_area
         print min_perimeter
+        win.close()
 
     def get_min_area(self):
         return self._min_area
